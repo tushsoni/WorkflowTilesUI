@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations Dashboard - 8 Tile View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --accent-green: #10b981; /* Modern Emerald Green */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 40px 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            align-items: center;
+        }
+
+        .scroll-area {
+            display: flex;
+            gap: 8px; /* Tighter gap for more tiles */
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 10px 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Navigation Buttons */
+        .nav-btn {
+            position: absolute;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-left { left: -10px; }
+        .btn-right { right: -10px; }
+
+        /* Compact Tile - Optimized for 8 per row */
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+         min-width: 190px; /* Increased from 165px */
+    width: 190px;     /* Increased from 165px */
+            padding: 12px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-box {
+            padding: 4px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bg-blue { background: #eff6ff; color: #3b82f6; }
+        .bg-orange { background: #fff7ed; color: #f97316; }
+        .bg-purple { background: #f5f3ff; color: #8b5cf6; }
+        .bg-teal { background: #f0fdfa; color: #14b8a6; }
+        .bg-green { background: #f0fdf4; color: #22c55e; }
+        .bg-red { background: #fef2f2; color: #ef4444; }
+
+        .title {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        /* Modern Green Graph Icon (Bar Chart) */
+        .graph-indicator {
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-value {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+        }
+
+        .card-footer {
+            background-color: #f9fafb;
+            border-radius: 6px;
+            display: flex;
+            padding: 8px;
+            margin-top: auto;
+        }
+
+        .footer-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .footer-col:first-child {
+            border-right: 1px solid #e5e7eb;
+            padding-right: 6px;
+        }
+
+        .footer-col:last-child {
+            padding-left: 6px;
+            text-align: right;
+        }
+
+        .footer-label {
+            font-size: 9px;
+            font-weight: 500;
+            color: #9ca3af;
+            margin-bottom: 1px;
+        }
+
+        .footer-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <button class="nav-btn btn-left" onclick="scrollArea(-200)">
+        <i data-lucide="chevron-left" size="18"></i>
+    </button>
+
+    <div class="scroll-area" id="scrollArea">
+        </div>
+
+    <button class="nav-btn btn-right" onclick="scrollArea(200)">
+        <i data-lucide="chevron-right" size="18"></i>
+    </button>
+</div>
+
+<script>
+    const tiles = [
+        { t: 'FORECASTED SALES', v: '$15,000.00', i: 'trending-up', bg: 'bg-blue', y: '$14,200.00', w: '$16,000.00' },
+        { t: 'ACTUAL SALES', v: '$3,000.00', i: 'dollar-sign', bg: 'bg-green', y: '$2,700.00', w: '$18,700.00' },
+        { t: 'LABOR %', v: '21.00%', i: 'percent', bg: 'bg-purple', y: '19.40%', w: '35.00%' },
+        { t: 'SCHEDULE HOURS', v: '107.00 Hrs', i: 'clock', bg: 'bg-teal', y: '98.50 Hrs', w: '238.00 Hrs' },
+        { t: 'LABOR DOLLARS', v: '$620.75', i: 'banknote', bg: 'bg-orange', y: '$590.20', w: '$1,495.75' },
+        { t: 'SCHEDULE DOLLARS', v: '$99,325.00', i: 'calendar', bg: 'bg-blue', y: '$94,000.00', w: '$199,000.00' },
+        { t: 'TIME LOSS', v: '$8.38', i: 'alert-triangle', bg: 'bg-red', y: '$12.10', w: '$53.88' },
+        { t: 'ACTUAL USAGE %', v: '411.00%', i: 'activity', bg: 'bg-green', y: '395.00%', w: '714.00%' },
+        { t: 'IDEAL USAGE %', v: '4.00%', i: 'target', bg: 'bg-purple', y: '4.10%', w: '3.80%' },
+        { t: 'USAGE VARIANCE %', v: '0.50%', i: 'layers', bg: 'bg-orange', y: '0.62%', w: '1.20%' }
+    ];
+
+    const container = document.getElementById('scrollArea');
+
+    function initDashboard() {
+        tiles.forEach(tile => {
+            const el = document.createElement('div');
+            el.className = 'card';
+            el.innerHTML = `
+                <div class="card-header">
+                    <div class="header-left">
+                        <div class="icon-box ${tile.bg}">
+                            <i data-lucide="${tile.i}" size="12"></i>
+                        </div>
+                        <span class="title">${tile.t}</span>
+                    </div>
+                    <div class="graph-indicator">
+                        <i data-lucide="bar-chart-3" size="14"></i>
+                    </div>
+                </div>
+                <div class="main-value">${tile.v}</div>
+                <div class="card-footer">
+                    <div class="footer-col">
+                        <span class="footer-label">Yesterday</span>
+                        <span class="footer-val">${tile.y}</span>
+                    </div>
+                    <div class="footer-col">
+                        <span class="footer-label">WTD</span>
+                        <span class="footer-val">${tile.w}</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+        lucide.createIcons();
+    }
+
+    function scrollArea(dist) {
+        container.scrollBy({ left: dist, behavior: 'smooth' });
+    }
+
+    document.addEventListener('DOMContentLoaded', initDashboard);
+</script>
+
+</body>
+</html>
