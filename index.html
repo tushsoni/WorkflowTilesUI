@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations Dashboard - Interactive Edit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --accent-green: #10b981;
+            --primary-blue: #3b82f6;
+            --modal-red: #d94444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .top-bar {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .edit-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .edit-btn:hover {
+            background: #f9fafb;
+        }
+
+        .dashboard-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            align-items: center;
+        }
+
+        .scroll-area {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 10px 4px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            width: 100%;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-btn {
+            position: absolute;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .btn-left { left: -10px; }
+        .btn-right { right: -10px; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            min-width: 190px;
+            width: 190px;
+            padding: 12px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .icon-box {
+            padding: 4px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .bg-blue { background: #eff6ff; color: #3b82f6; }
+        .bg-orange { background: #fff7ed; color: #f97316; }
+        .bg-purple { background: #f5f3ff; color: #8b5cf6; }
+        .bg-teal { background: #f0fdfa; color: #14b8a6; }
+        .bg-green { background: #f0fdf4; color: #22c55e; }
+        .bg-red { background: #fef2f2; color: #ef4444; }
+
+        .title {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .graph-indicator {
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-value {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+        }
+
+        .card-footer {
+            background-color: #f9fafb;
+            border-radius: 6px;
+            display: flex;
+            padding: 8px;
+            margin-top: auto;
+        }
+
+        .footer-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .footer-col:first-child {
+            border-right: 1px solid #e5e7eb;
+            padding-right: 6px;
+        }
+
+        .footer-col:last-child {
+            padding-left: 6px;
+            text-align: right;
+        }
+
+        .footer-label {
+            font-size: 9px;
+            font-weight: 500;
+            color: #9ca3af;
+            margin-bottom: 1px;
+        }
+
+        .footer-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        /* Edit Mode Styles */
+        .input-title {
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            width: 100%;
+            padding: 2px 4px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-title:focus {
+            border-color: var(--primary-blue);
+            background: white;
+        }
+
+        .trash-btn {
+            color: #ef4444;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            margin-left: 4px;
+        }
+
+        .add-card {
+            min-width: 190px;
+            width: 190px;
+            background: transparent;
+            border: 2px dashed #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .plus-icon {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 450px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background: var(--modal-red);
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .close-x {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 30px 25px;
+        }
+
+        .modal-text-primary {
+            color: #ef4444;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .modal-text-secondary {
+            color: #ef4444;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .modal-btn {
+            padding: 8px 35px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-size: 14px;
+        }
+
+        .btn-yes {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-no {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="edit-btn" id="editBtn" onclick="toggleEdit()">Edit</button>
+</div>
+
+<div class="dashboard-wrapper">
+    <button class="nav-btn btn-left" onclick="scrollArea(-200)">
+        <i data-lucide="chevron-left" size="18"></i>
+    </button>
+
+    <div class="scroll-area" id="scrollArea"></div>
+
+    <button class="nav-btn btn-right" onclick="scrollArea(200)">
+        <i data-lucide="chevron-right" size="18"></i>
+    </button>
+</div>
+
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirmation</h3>
+            <div class="close-x" onclick="closeModal()">
+                <i data-lucide="x-circle" size="20"></i>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="modal-text-primary">Are you sure you want to remove this tile?</div>
+            <div class="modal-text-secondary">You can add it again anytime by clicking the Add (+) icon.</div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn btn-yes" id="confirmDeleteBtn">YES</button>
+            <button class="modal-btn btn-no" onclick="closeModal()">NO</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isEditing = false;
+    let tileToDeleteId = null;
+    let tiles = [
+        { id: 1, t: 'FORECASTED SALES', v: '$15,000.00', i: 'trending-up', bg: 'bg-blue', y: '$14,200.00', w: '$16,000.00', cat: 'ZIP FORECAST' },
+        { id: 2, t: 'ACTUAL SALES', v: '$3,000.00', i: 'dollar-sign', bg: 'bg-green', y: '$2,700.00', w: '$18,700.00', cat: 'ZIP FORECAST' },
+        { id: 3, t: 'LABOR %', v: '21.00%', i: 'percent', bg: 'bg-purple', y: '19.40%', w: '35.00%', cat: 'ZIP SCHEDULES' },
+        { id: 4, t: 'SCHEDULE HOURS', v: '107.00 Hrs', i: 'clock', bg: 'bg-teal', y: '98.50 Hrs', w: '238.00 Hrs', cat: 'ZIP SCHEDULES' },
+        { id: 5, t: 'LABOR DOLLARS', v: '$620.75', i: 'banknote', bg: 'bg-orange', y: '$590.20', w: '$1,495.75', cat: 'ZIP SCHEDULES' },
+        { id: 6, t: 'SCHEDULE DOLLARS', v: '$99,325.00', i: 'calendar', bg: 'bg-blue', y: '$94,000.00', w: '$199,000.00', cat: 'ZIP SCHEDULES' },
+        { id: 7, t: 'TIME LOSS', v: '$8.38', i: 'alert-triangle', bg: 'bg-red', y: '$12.10', w: '$53.88', cat: 'ZIP TIMEKEEPING' },
+        { id: 8, t: 'ACTUAL USAGE %', v: '411.00%', i: 'activity', bg: 'bg-green', y: '395.00%', w: '714.00%', cat: 'ZIP INVENTORY' },
+        { id: 9, t: 'IDEAL USAGE %', v: '4.00%', i: 'target', bg: 'bg-purple', y: '4.10%', w: '3.80%', cat: 'ZIP INVENTORY' },
+        { id: 10, t: 'USAGE VARIANCE %', v: '0.50%', i: 'layers', bg: 'bg-orange', y: '0.62%', w: '1.20%', cat: 'ZIP INVENTORY' }
+    ];
+
+    const container = document.getElementById('scrollArea');
+    const editBtn = document.getElementById('editBtn');
+    const deleteModal = document.getElementById('deleteModal');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    function toggleEdit() {
+        isEditing = !isEditing;
+        editBtn.textContent = isEditing ? 'Save' : 'Edit';
+        renderDashboard();
+    }
+
+    function openDeleteModal(id) {
+        tileToDeleteId = id;
+        deleteModal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        deleteModal.style.display = 'none';
+        tileToDeleteId = null;
+    }
+
+    confirmDeleteBtn.onclick = function() {
+        if (tileToDeleteId) {
+            tiles = tiles.filter(tile => tile.id !== tileToDeleteId);
+            closeModal();
+            renderDashboard();
+        }
+    }
+
+    function updateTileName(id, val) {
+        const tile = tiles.find(t => t.id === id);
+        if (tile) tile.t = val.toUpperCase();
+    }
+
+    function renderDashboard() {
+        container.innerHTML = '';
+
+        if (isEditing) {
+            const addTile = document.createElement('div');
+            addTile.className = 'add-card';
+            addTile.innerHTML = `<div class="plus-icon"><i data-lucide="plus" size="24"></i></div>`;
+            container.appendChild(addTile);
+        }
+
+        tiles.forEach(tile => {
+            const el = document.createElement('div');
+            el.className = 'card';
+            
+            const titleContent = isEditing 
+                ? `<input type="text" class="input-title" value="${tile.t}" oninput="updateTileName(${tile.id}, this.value)">`
+                : `<span class="title">${tile.t}</span>`;
+
+            const actionIcon = isEditing
+                ? `<button class="trash-btn" onclick="openDeleteModal(${tile.id})"><i data-lucide="trash-2" size="12"></i></button>`
+                : `<div class="graph-indicator"><i data-lucide="bar-chart-3" size="14"></i></div>`;
+
+            const displayMainValue = isEditing ? '-' : tile.v;
+            const displayYesterday = isEditing ? '-' : tile.y;
+            const displayWTD = isEditing ? '-' : tile.w;
+
+            el.innerHTML = `
+                <div class="card-header">
+                    <div class="header-left">
+                        <div class="icon-box ${tile.bg}">
+                            <i data-lucide="${tile.i}" size="12"></i>
+                        </div>
+                        ${titleContent}
+                    </div>
+                    ${actionIcon}
+                </div>
+                <div class="main-value">${displayMainValue}</div>
+                <div class="card-footer">
+                    <div class="footer-col">
+                        <span class="footer-label">Yesterday</span>
+                        <span class="footer-val">${displayYesterday}</span>
+                    </div>
+                    <div class="footer-col">
+                        <span class="footer-label">WTD</span>
+                        <span class="footer-val">${displayWTD}</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+        
+        lucide.createIcons();
+    }
+
+    function scrollArea(dist) {
+        container.scrollBy({ left: dist, behavior: 'smooth' });
+    }
+
+    document.addEventListener('DOMContentLoaded', renderDashboard);
+</script>
+
+</body>
+</html>
